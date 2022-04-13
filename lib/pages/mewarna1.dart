@@ -1,10 +1,21 @@
+// ignore_for_file: avoid_print
+
+import 'dart:convert';
+import 'dart:io';
+
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-// import 'package:flutter/services.dart';
-// import 'dart:ui' as ui;
+// import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:ui' as ui;
 
 import '../controller/myCustonPainter.dart';
-// import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+
+import 'package:intl/intl.dart' show toBeginningOfSentenceCase;
 
 class Mewarna1Page extends StatefulWidget {
   const Mewarna1Page({Key? key}) : super(key: key);
@@ -17,29 +28,72 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
   // List<Offset?> points = [];
   List<DrawingArea?> points = [];
   // List<DrawingArea?> undoPoints = [];
-  Color selectedColor = Colors.black.withOpacity(0.08);
+  Color selectedColor = Colors.black.withOpacity(0.01);
   double strokeWidth = 2.0;
   // ui.Image? image;
 
   late Map args;
 
-  // @override
-  // void initState() {
-  //   // TODO: implement initState
-  //   super.initState();
-  //   // selectedColor = Colors.black;
-  //   // strokeWidth = 2.0;
-  //   // loadImage('assets/hewan/singa.jpg');
-  //   args = ModalRoute.of(context)?.settings.arguments as Map;
-  //   print(args);
+  final GlobalKey _globalKey = GlobalKey();
+
+  Uint8List? _bytes;
+  String _ini = 'tiada';
+
+  bool _delete = false;
+
+  // ignore: unused_element
+  // Future _saveNetworkImage() async {
+  //   // String path =
+  //   //     'https://image.shutterstock.com/image-photo/montreal-canada-july-11-2019-600w-1450023539.jpg';
+  //   // GallerySaver.saveImage(path, albumName: "Download");
   // }
+
+  Future _saveImage(Uint8List bytes) async {
+    final appStorage = await getApplicationDocumentsDirectory();
+    final file = File('${appStorage.path}/screenshot.png');
+    await file.writeAsBytes(bytes);
+  }
+
+  Future<Uint8List> _capturePng() async {
+    // try {
+    await EasyLoading.show(
+      status: 'loading...',
+      maskType: EasyLoadingMaskType.black,
+    );
+    RenderRepaintBoundary boundary =
+        _globalKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+    ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+    ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    var pngBytes = byteData!.buffer.asUint8List();
+    var bs64 = base64Encode(pngBytes);
+
+    setState(() {
+      _bytes = base64Decode(bs64);
+      _ini = 'ada';
+      points.clear();
+    });
+    await _saveImage(base64Decode(bs64));
+    // await _saveNetworkImage();
+
+    // await ImageGallerySaver.saveImage(Uint8List.fromList(pngBytes),
+    //     quality: 60, name: "hello");
+
+    await EasyLoading.dismiss();
+
+    return pngBytes;
+    // } catch (e) {
+    //   print(e);
+    //   return null;
+    // }
+  }
 
   @override
   void didChangeDependencies() {
+    // ignore: todo
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     args = ModalRoute.of(context)?.settings.arguments as Map;
-    print(args);
+    // print(args);
   }
 
   void selectColor() {
@@ -51,9 +105,9 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
           child: BlockPicker(
             pickerColor: selectedColor,
             onColorChanged: (color) {
-              print(colorToHex(color));
+              // print(colorToHex(color));
               setState(() {
-                selectedColor = color.withOpacity(0.08);
+                selectedColor = color.withOpacity(0.01);
               });
             },
           ),
@@ -79,97 +133,156 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
     return WillPopScope(
       onWillPop: _onWillPopScope,
       child: Scaffold(
+        appBar: AppBar(
+          title: Text(toBeginningOfSentenceCase(args['nama']?.toString()) ??
+              'Mewarna 1'),
+          actions: [
+            Ink(
+              decoration: ShapeDecoration(
+                color: _delete ? Colors.red : Colors.transparent,
+                shape: const CircleBorder(),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  setState(() {
+                    _delete = !_delete;
+                  });
+                },
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.save_alt_outlined),
+              onPressed: () {},
+            ),
+          ],
+        ),
         body: Stack(
           children: [
             Container(
               decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
                     Color.fromRGBO(138, 35, 135, 1.0),
                     Color.fromRGBO(233, 64, 87, 1.0),
                     Color.fromRGBO(242, 113, 33, 1.0),
-                  ])),
+                  ],
+                ),
+              ),
             ),
             Center(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: width * 0.80,
-                    height: height * 0.80,
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(20.0)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 5.0,
-                          spreadRadius: 1.0,
-                        )
-                      ],
-                      image: DecorationImage(
-                        image: AssetImage("assets/" +
-                            args['kategori'] +
-                            "/" +
-                            args['nama'] +
-                            ".jpg"),
-                        fit: BoxFit.fill,
+                  RepaintBoundary(
+                    key: _globalKey,
+                    child: Container(
+                      width: width * 0.80,
+                      height: height * 0.70,
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(20.0),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 5.0,
+                            spreadRadius: 1.0,
+                          )
+                        ],
+                        image: _ini == 'tiada'
+                            ? DecorationImage(
+                                image: AssetImage("assets/" +
+                                    args['kategori'] +
+                                    "/" +
+                                    args['nama'] +
+                                    ".jpg"),
+                                fit: BoxFit.fill,
+                              )
+                            : DecorationImage(
+                                image: MemoryImage(_bytes!),
+                                fit: BoxFit.cover,
+                              ),
                       ),
-                    ),
-                    child: GestureDetector(
-                      onPanDown: (details) {
-                        setState(() {
-                          // points.add(details.localPosition);
-                          // print(points);
-                          points.add(
-                            DrawingArea(
-                              point: details.localPosition,
-                              areaPaint: Paint()
-                                ..strokeCap = StrokeCap.round
-                                ..isAntiAlias = true
-                                ..color = selectedColor
-                                ..strokeWidth = strokeWidth,
-                            ),
-                          );
-                        });
-                      },
-                      onPanUpdate: (details) {
-                        setState(() {
-                          // points.add(details.localPosition);
-                          // print(points);
-                          points.add(
-                            DrawingArea(
-                              point: details.localPosition,
-                              areaPaint: Paint()
-                                ..strokeCap = StrokeCap.round
-                                ..isAntiAlias = true
-                                ..color = selectedColor
-                                ..strokeWidth = strokeWidth,
-                            ),
-                          );
-                        });
-                      },
-                      onPanEnd: (details) {
-                        setState(() {
-                          points.add(null);
-                          // print(details);
-                        });
-                      },
-                      child: ClipRRect(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(20.0)),
-                        child: CustomPaint(
-                          painter: MyCustomPainter(points: points),
+                      child: GestureDetector(
+                        onPanDown: (details) {
+                          if (_delete) {
+                            setState(() {
+                              points.add(
+                                DrawingArea(
+                                  point: details.localPosition,
+                                  areaPaint: Paint()
+                                    ..strokeCap = StrokeCap.round
+                                    ..isAntiAlias = true
+                                    ..color = Colors.white.withOpacity(0.07)
+                                    ..strokeWidth = strokeWidth,
+                                ),
+                              );
+                            });
+                          } else {
+                            setState(() {
+                              points.add(
+                                DrawingArea(
+                                  point: details.localPosition,
+                                  areaPaint: Paint()
+                                    ..strokeCap = StrokeCap.round
+                                    ..isAntiAlias = true
+                                    ..color = selectedColor
+                                    ..strokeWidth = strokeWidth,
+                                ),
+                              );
+                            });
+                          }
+                        },
+                        onPanUpdate: (details) {
+                          if (_delete) {
+                            setState(() {
+                              points.add(
+                                DrawingArea(
+                                  point: details.localPosition,
+                                  areaPaint: Paint()
+                                    ..strokeCap = StrokeCap.round
+                                    ..isAntiAlias = true
+                                    ..color = Colors.white.withOpacity(0.07)
+                                    ..strokeWidth = strokeWidth,
+                                ),
+                              );
+                            });
+                          } else {
+                            setState(() {
+                              points.add(
+                                DrawingArea(
+                                  point: details.localPosition,
+                                  areaPaint: Paint()
+                                    ..strokeCap = StrokeCap.round
+                                    ..isAntiAlias = true
+                                    ..color = selectedColor
+                                    ..strokeWidth = strokeWidth,
+                                ),
+                              );
+                            });
+                          }
+                        },
+                        onPanEnd: (details) {
+                          setState(() {
+                            points.add(null);
+                            // print(details);
+                          });
+                        },
+                        child: ClipRRect(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(20.0)),
+                          child: CustomPaint(
+                            painter: MyCustomPainter(points: points),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 5),
                   Container(
                     width: width * 0.80,
                     decoration: const BoxDecoration(
@@ -189,7 +302,7 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
                         Expanded(
                           child: Slider(
                             min: 1.0,
-                            max: 7.0,
+                            max: 20.0,
                             activeColor: selectedColor.withOpacity(1),
                             value: strokeWidth,
                             onChanged: (value) {
@@ -211,38 +324,30 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
                             //remove the 10 last points
                             setState(() {
                               if (points.isNotEmpty) {
-                                if (points.length > 20) {
+                                if (points.length > 200) {
                                   points.removeRange(
-                                      points.length - 20, points.length);
+                                      points.length - 200, points.length);
                                 } else {
                                   points.clear();
                                 }
                               }
                             });
                           },
-                          child: Icon(
+                          child: const Icon(
                             Icons.layers_clear,
                             color: Colors.black,
                           ),
                         ),
-                        SizedBox(
-                          width: 10,
+                        IconButton(
+                          onPressed: () async {
+                            _capturePng();
+                            print("sini untuk simpan");
+                            // String path =
+                            //     'https://image.shutterstock.com/image-photo/montreal-canada-july-11-2019-600w-1450023539.jpg';
+                            // await GallerySaver.saveImage(path);
+                          },
+                          icon: const Icon(Icons.save_alt_outlined),
                         ),
-                        // IconButton(
-                        //   onPressed: () {
-                        //     // points.clear();
-                        //     // points.removeLast();
-
-                        //     // search for undoPoints on points and remove it
-                        //     setState(() {
-                        //       // points.removeLast();
-                        //       if (points.isNotEmpty) {
-                        //         points.removeLast();
-                        //       }
-                        //     });
-                        //   },
-                        //   icon: Icon(Icons.layers_clear),
-                        // ),
                       ],
                     ),
                   ),

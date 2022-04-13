@@ -34,7 +34,11 @@ class PilihKategori extends HookWidget {
                     child: ElevatedButton(
                       child: const Text('Binatang'),
                       onPressed: () {
-                        Navigator.pushNamed(context, '/binatang');
+                        Navigator.pushNamed(
+                          context,
+                          '/kategori',
+                          arguments: "Binatang",
+                        );
                       },
                     ),
                   ),
@@ -44,8 +48,14 @@ class PilihKategori extends HookWidget {
                   SizedBox(
                     width: MediaQuery.of(context).size.width / 3,
                     child: ElevatedButton(
-                      child: const Text('Kendaraan'),
-                      onPressed: () {},
+                      child: const Text('Kenderaan'),
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/kategori',
+                          arguments: "Kenderaan",
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(
@@ -55,7 +65,13 @@ class PilihKategori extends HookWidget {
                     width: MediaQuery.of(context).size.width / 3,
                     child: ElevatedButton(
                       child: const Text('Sayur-Sayuran'),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/kategori',
+                          arguments: "Sayur-Sayuran",
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(
@@ -65,7 +81,13 @@ class PilihKategori extends HookWidget {
                     width: MediaQuery.of(context).size.width / 3,
                     child: ElevatedButton(
                       child: const Text('Buah-Buahan'),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/kategori',
+                          arguments: "Buah-Buahan",
+                        );
+                      },
                     ),
                   ),
                 ],
