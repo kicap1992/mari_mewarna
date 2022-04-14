@@ -14,6 +14,7 @@ import 'dart:ui' as ui;
 
 import '../controller/myCustonPainter.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:intl/intl.dart' show toBeginningOfSentenceCase;
 
@@ -33,6 +34,7 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
   // ui.Image? image;
 
   late Map args;
+  late String _uuid;
 
   final GlobalKey _globalKey = GlobalKey();
 
@@ -50,7 +52,9 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
 
   Future _saveImage(Uint8List bytes) async {
     final appStorage = await getApplicationDocumentsDirectory();
-    final file = File('${appStorage.path}/screenshot.png');
+    final file_name = args['nama']!.toString() + _uuid + '.png';
+    print(file_name);
+    final file = File('${appStorage.path}/${file_name}');
     await file.writeAsBytes(bytes);
   }
 
@@ -85,6 +89,14 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
     //   print(e);
     //   return null;
     // }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _uuid = Uuid().v4();
+    print(_uuid);
   }
 
   @override
