@@ -47,6 +47,7 @@ dependencies:
   flutter_easyloading: ^3.0.3
   intl: ^0.17.0
   uuid: ^3.0.6
+  audioplayers: ^0.20.1
 
 dev_dependencies:
   flutter_test:

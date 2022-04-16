@@ -1,13 +1,16 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'dart:typed_data';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 // import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:ui' as ui;
@@ -43,6 +46,13 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
 
   bool _delete = false;
 
+  // audio player
+  // AudioCache _audioCache = AudioCache();
+  final _audioPlayer = AudioPlayer(); //call audio player
+  bool _isPlaying = false; //check if audio is playing
+  Duration _duration = Duration.zero; //set duration to 0
+  // Duration _position = Duration.zero; //set position to 0
+
   // ignore: unused_element
   // Future _saveNetworkImage() async {
   //   // String path =
@@ -52,13 +62,13 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
 
   Future _saveImage(Uint8List bytes) async {
     final appStorage = await getApplicationDocumentsDirectory();
-    final file_name = args['nama']!.toString() + _uuid + '.png';
-    print(file_name);
-    final file = File('${appStorage.path}/${file_name}');
+    final fileName = args['nama']!.toString() + _uuid + '.png';
+    log(fileName);
+    final file = File('${appStorage.path}/$fileName');
     await file.writeAsBytes(bytes);
   }
 
-  Future<Uint8List> _capturePng() async {
+  Future<Uint8List> _capturePng(String stat) async {
     // try {
     await EasyLoading.show(
       status: 'loading...',
@@ -79,10 +89,36 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
     await _saveImage(base64Decode(bs64));
     // await _saveNetworkImage();
 
-    // await ImageGallerySaver.saveImage(Uint8List.fromList(pngBytes),
-    //     quality: 60, name: "hello");
-
     await EasyLoading.dismiss();
+
+    if (stat == 'simpan') {
+      // log('simpan');
+      await EasyLoading.show(
+        status: 'Menyimpan Ke  Galeri',
+        maskType: EasyLoadingMaskType.black,
+      );
+      await ImageGallerySaver.saveImage(Uint8List.fromList(pngBytes),
+          quality: 100, name: args['nama']!.toString() + _uuid);
+      await EasyLoading.dismiss();
+      // create alert dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Tersimpan'),
+            content: const Text('Gambar telah disimpan di galeri'),
+            actions: <Widget>[
+              ElevatedButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
 
     return pngBytes;
     // } catch (e) {
@@ -93,10 +129,37 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
 
   @override
   void initState() {
+    // ignore: todo
     // TODO: implement initState
     super.initState();
-    _uuid = Uuid().v4();
-    print(_uuid);
+    _uuid = const Uuid().v4();
+    // print(_uuid);
+    // setAudio('burung', 'binatang');
+    _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = state == PlayerState.PLAYING;
+        });
+      }
+    });
+
+    _audioPlayer.onDurationChanged.listen((duration) {
+      if (mounted) {
+        setState(() {
+          _duration = duration;
+        });
+      }
+    });
+
+    _audioPlayer.onAudioPositionChanged.listen((position) {
+      // if
+      if (mounted) {
+        log('position: $position');
+        if (position.inMilliseconds > _duration.inMilliseconds) {
+          _audioPlayer.stop();
+        }
+      }
+    });
   }
 
   @override
@@ -105,7 +168,30 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     args = ModalRoute.of(context)?.settings.arguments as Map;
-    // print(args);
+    log(args['nama'].toString());
+    log(args['kategori'].toString());
+    setAudio(args['nama'].toString(), args['kategori'].toString());
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+
+    super.dispose();
+  }
+
+  Future setAudio(String? nama, String? folder) async {
+    // repeat audio
+    // _audioPlayer.setReleaseMode(ReleaseMode.LOOP);
+
+    // load audio from asset (assets/binatang/burung.mp3)
+    final player = AudioCache(prefix: 'assets/' + folder! + '/');
+    final url = await player.load(nama! + '.mp3');
+    _audioPlayer.setUrl(url.path, isLocal: true);
+    _audioPlayer.resume();
+    setState(() {
+      _isPlaying = true;
+    });
   }
 
   void selectColor() {
@@ -149,6 +235,21 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
           title: Text(toBeginningOfSentenceCase(args['nama']?.toString()) ??
               'Mewarna 1'),
           actions: [
+            IconButton(
+              icon: _isPlaying
+                  ? const Icon(Icons.stop)
+                  : const Icon(Icons.play_arrow),
+              onPressed: () async {
+                if (_isPlaying) {
+                  await _audioPlayer.stop();
+                  setState(() {
+                    _isPlaying = false;
+                  });
+                } else {
+                  await _audioPlayer.resume();
+                }
+              },
+            ),
             Ink(
               decoration: ShapeDecoration(
                 color: _delete ? Colors.red : Colors.transparent,
@@ -164,8 +265,10 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.save_alt_outlined),
-              onPressed: () {},
+              icon: const Icon(Icons.save),
+              onPressed: () {
+                _capturePng('simpan');
+              },
             ),
           ],
         ),
@@ -352,8 +455,8 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
                         ),
                         IconButton(
                           onPressed: () async {
-                            _capturePng();
-                            print("sini untuk simpan");
+                            _capturePng('tidak_simpan');
+                            log("sini untuk simpan");
                             // String path =
                             //     'https://image.shutterstock.com/image-photo/montreal-canada-july-11-2019-600w-1450023539.jpg';
                             // await GallerySaver.saveImage(path);
@@ -372,38 +475,40 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
     );
   }
 
-  // Future loadImage(String path) async {
-  //   final data = await rootBundle.load(path);
-  //   final bytes = data.buffer.asUint8List();
-  //   final image = await decodeImageFromList(bytes);
-  //   setState(() {
-  //     this.image = image;
-  //   });
-  // }
-
   Future<bool> _onWillPopScope() async {
     // return false;
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Berhenti Mewarna'),
-            content: const Text('Apakah anda yakin ingin berhenti mewarna?'),
+            title: const Text(
+              'Berhenti Mewarna',
+              textAlign: TextAlign.center,
+            ),
+            content: const Text(
+              'Apakah anda yakin ingin berhenti mewarna? \n Semua yang telah dibuat akan hilang',
+              textAlign: TextAlign.center,
+            ),
             actions: [
-              ElevatedButton(
-                child: const Text('Tidak'),
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
-              ),
-              ElevatedButton(
-                child: const Text('Ya'),
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                style: ElevatedButton.styleFrom(
-                  primary: Colors.red,
-                  // backgroundColor: Colors.red,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                    child: const Text('Tidak'),
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                  ),
+                  ElevatedButton(
+                    child: const Text('Ya'),
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.red,
+                      // backgroundColor: Colors.red,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

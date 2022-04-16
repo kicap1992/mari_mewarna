@@ -1,9 +1,10 @@
-import 'dart:io';
-import 'dart:typed_data';
+// import 'dart:developer';
+// import 'dart:io';
+// import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:mewarna/widgets/ourContainer.dart';
-import 'package:path_provider/path_provider.dart';
+// import 'package:path_provider/path_provider.dart';
 
 class Tentang1 extends StatefulWidget {
   const Tentang1({Key? key}) : super(key: key);
@@ -13,29 +14,29 @@ class Tentang1 extends StatefulWidget {
 }
 
 class _Tentang1State extends State<Tentang1> {
-  Uint8List? _bytes;
+  // Uint8List? _bytes;
 
-  Future cek_image() async {
-    final appStorage = await getApplicationDocumentsDirectory();
-    print(Directory(appStorage.path).listSync());
-    final file = File(
-        '${appStorage.path}/gajah51b2b453-5f5a-404f-89ab-2dcc46757319.png');
-    if (file.existsSync()) {
-      print("ada");
-      Uint8List bytes = await file.readAsBytes();
-      setState(() {
-        _bytes = bytes;
-      });
-    } else {
-      print("tidak ada");
-    }
-  }
+  // ignore: non_constant_identifier_names
+  // Future cek_image() async {
+  //   final appStorage = await getApplicationDocumentsDirectory();
+  //   log(Directory(appStorage.path).listSync().toString());
+  //   final file = File(
+  //       '${appStorage.path}/gajah51b2b453-5f5a-404f-89ab-2dcc46757319.png');
+  //   if (file.existsSync()) {
+  //     log("ada");
+  //     Uint8List bytes = await file.readAsBytes();
+  //     setState(() {
+  //       _bytes = bytes;
+  //     });
+  //   } else {
+  //     log("tidak ada");
+  //   }
+  // }
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    cek_image();
+    // cek_image();
   }
 
   @override
@@ -60,14 +61,14 @@ class _Tentang1State extends State<Tentang1> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      _bytes != null
-                          ? Image.memory(
-                              _bytes!,
-                              fit: BoxFit.fill,
-                              width: 100,
-                              height: 100,
-                            )
-                          : Container(),
+                      // _bytes != null
+                      //     ? Image.memory(
+                      //         _bytes!,
+                      //         fit: BoxFit.fill,
+                      //         width: 100,
+                      //         height: 100,
+                      //       )
+                      //     : Container(),
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.02,
                       ),
