@@ -96,7 +96,7 @@ class _KategoriPageState extends State<KategoriPage> {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            "assets/bg.jpg",
+            "assets/bg.png",
             fit: BoxFit.cover,
             color: Colors.black.withOpacity(0.2),
             colorBlendMode: BlendMode.darken,

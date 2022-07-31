@@ -10,7 +10,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:gallery_saver/gallery_saver.dart';
+// import 'package:image_gallery_saver/image_gallery_saver.dart';
 // import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:ui' as ui;
@@ -60,12 +61,39 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
   //   // GallerySaver.saveImage(path, albumName: "Download");
   // }
 
-  Future _saveImage(Uint8List bytes) async {
+  Future _saveImage(Uint8List bytes, String stat) async {
+    log(stat);
     final appStorage = await getApplicationDocumentsDirectory();
     final fileName = args['nama']!.toString() + _uuid + '.png';
     log(fileName);
     final file = File('${appStorage.path}/$fileName');
+    log(file.toString());
     await file.writeAsBytes(bytes);
+
+    if (stat == 'simpan') {
+      await EasyLoading.show(
+        status: 'Menyimpan...',
+        maskType: EasyLoadingMaskType.black,
+      );
+      await GallerySaver.saveImage(file.path, albumName: "Download");
+      await EasyLoading.dismiss();
+      // create dialog box message "Foto berhasil disimpan"
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          // title: Text('Foto berhasil disimpan di'),
+          content: const Text('Foto berhasil disimpan di galeri'),
+          actions: <Widget>[
+            ElevatedButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Future<Uint8List> _capturePng(String stat) async {
@@ -86,39 +114,39 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
       _ini = 'ada';
       points.clear();
     });
-    await _saveImage(base64Decode(bs64));
+    await _saveImage(base64Decode(bs64), stat);
     // await _saveNetworkImage();
 
     await EasyLoading.dismiss();
 
-    if (stat == 'simpan') {
-      // log('simpan');
-      await EasyLoading.show(
-        status: 'Menyimpan Ke  Galeri',
-        maskType: EasyLoadingMaskType.black,
-      );
-      await ImageGallerySaver.saveImage(Uint8List.fromList(pngBytes),
-          quality: 100, name: args['nama']!.toString() + _uuid);
-      await EasyLoading.dismiss();
-      // create alert dialog
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Tersimpan'),
-            content: const Text('Gambar telah disimpan di galeri'),
-            actions: <Widget>[
-              ElevatedButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
+    // if (stat == 'simpan') {
+    //   // log('simpan');
+    //   await EasyLoading.show(
+    //     status: 'Menyimpan Ke  Galeri',
+    //     maskType: EasyLoadingMaskType.black,
+    //   );
+    //   await ImageGallerySaver.saveImage(Uint8List.fromList(pngBytes),
+    //       quality: 100, name: args['nama']!.toString() + _uuid);
+    //   await EasyLoading.dismiss();
+    //   // create alert dialog
+    //   showDialog(
+    //     context: context,
+    //     builder: (BuildContext context) {
+    //       return AlertDialog(
+    //         title: const Text('Tersimpan'),
+    //         content: const Text('Gambar telah disimpan di galeri'),
+    //         actions: <Widget>[
+    //           ElevatedButton(
+    //             child: const Text('OK'),
+    //             onPressed: () {
+    //               Navigator.of(context).pop();
+    //             },
+    //           ),
+    //         ],
+    //       );
+    //     },
+    //   );
+    // }
 
     return pngBytes;
     // } catch (e) {
@@ -206,6 +234,7 @@ class _Mewarna1PageState extends State<Mewarna1Page> {
               // print(colorToHex(color));
               setState(() {
                 selectedColor = color.withOpacity(0.01);
+                // selectedColor = color.withOpacity(0.5);
               });
             },
           ),

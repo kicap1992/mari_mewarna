@@ -16,7 +16,7 @@ class PilihKategori extends HookWidget {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            "assets/bg.jpg",
+            "assets/bg.png",
             fit: BoxFit.cover,
             color: Colors.black.withOpacity(0.2),
             colorBlendMode: BlendMode.darken,
@@ -30,7 +30,7 @@ class PilihKategori extends HookWidget {
                   //make the button same width
                   SizedBox(
                     // width is half of the screen width
-                    width: MediaQuery.of(context).size.width / 3,
+                    width: MediaQuery.of(context).size.width / 2.7,
                     child: ElevatedButton(
                       child: const Text('Binatang'),
                       onPressed: () {
@@ -46,7 +46,7 @@ class PilihKategori extends HookWidget {
                     height: 15,
                   ),
                   SizedBox(
-                    width: MediaQuery.of(context).size.width / 3,
+                    width: MediaQuery.of(context).size.width / 2.7,
                     child: ElevatedButton(
                       child: const Text('Kenderaan'),
                       onPressed: () {
@@ -62,9 +62,12 @@ class PilihKategori extends HookWidget {
                     height: 15,
                   ),
                   SizedBox(
-                    width: MediaQuery.of(context).size.width / 3,
+                    width: MediaQuery.of(context).size.width / 2.7,
                     child: ElevatedButton(
-                      child: const Text('Sayur-Sayuran'),
+                      child: const Text(
+                        'Sayur-Sayuran',
+                        textAlign: TextAlign.center,
+                      ),
                       onPressed: () {
                         Navigator.pushNamed(
                           context,
@@ -78,7 +81,7 @@ class PilihKategori extends HookWidget {
                     height: 15,
                   ),
                   SizedBox(
-                    width: MediaQuery.of(context).size.width / 3,
+                    width: MediaQuery.of(context).size.width / 2.7,
                     child: ElevatedButton(
                       child: const Text('Buah-Buahan'),
                       onPressed: () {
